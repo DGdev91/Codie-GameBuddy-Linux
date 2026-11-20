@@ -1,0 +1,41 @@
+version: 47
+jobs:
+- name: test
+  steps:
+  - type: CheckoutStep
+    name: checkout
+    cloneCredential:
+      type: DefaultCredential
+    withLfs: false
+    withSubmodules: false
+    condition: SUCCESSFUL
+    optional: false
+  - type: CommandStep
+    name: npm test
+    runInContainer: false
+    interpreter:
+      type: DefaultInterpreter
+      commands: |
+        set -ex
+        # HOME must not hold the test temp dirs: paths under HOME print as ~/...
+        docker run --rm -u "$(id -u):$(id -g)" -e HOME=/tmp/home \
+          -e npm_config_registry=https://registry.npmmirror.com \
+          -v "$PWD:/w" -w /w dockermirror.service.code27.cn/library/node:20 bash -exc '
+            mkdir -p "$HOME"
+            node -v
+            npm ci
+            npm test
+          '
+    useTTY: true
+    condition: SUCCESSFUL
+    optional: false
+  triggers:
+  - type: BranchUpdateTrigger
+    branches: '**'
+    userMatch: anyone
+  - type: PullRequestUpdateTrigger
+    branches: '**'
+  retryCondition: never
+  maxRetries: 3
+  retryDelay: 30
+  timeout: 1800

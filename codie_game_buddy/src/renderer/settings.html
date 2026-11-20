@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'">
+  <title>Codie Game Buddy</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Codie Game Buddy</h1>
+      <p id="status" class="status" role="status"></p>
+      <p id="last-error" class="note"></p>
+    </header>
+
+    <section class="card">
+      <h2 data-i18n="device.heading"></h2>
+      <ul id="devices" class="list"></ul>
+      <div class="row"><button id="scan" type="button" data-i18n="device.scan"></button></div>
+      <div id="pairing" hidden>
+        <label class="field"><span data-i18n="device.code"></span> <input type="text" id="code" maxlength="6" inputmode="numeric"></label>
+        <div class="row">
+          <button id="confirm" type="button" class="primary" data-i18n="device.pair"></button>
+          <button id="cancel" type="button" data-i18n="device.cancel"></button>
+        </div>
+      </div>
+      <p id="pair-status" class="note"></p>
+    </section>
+
+    <section class="card">
+      <h2 data-i18n="games.heading"></h2>
+      <ul id="games" class="list"></ul>
+      <p id="games-empty" class="empty" data-i18n="games.empty"></p>
+      <div class="row">
+        <select id="running"></select>
+        <button id="running-refresh" type="button" data-i18n="games.refresh"></button>
+        <button id="running-add" type="button" data-i18n="games.add"></button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 data-i18n="commentary.heading"></h2>
+      <label class="switch"><input type="checkbox" id="enabled"><span class="track"></span><span data-i18n="commentary.enabled"></span></label>
+      <label class="switch"><input type="checkbox" id="chatty"><span class="track"></span><span data-i18n="commentary.chatty"></span></label>
+      <p id="chatty-hint" class="note" data-i18n="commentary.chatty-hint"></p>
+      <label class="switch"><input type="checkbox" id="fast-mode"><span class="track"></span><span data-i18n="commentary.fast-mode"></span></label>
+      <p class="note" data-i18n="commentary.fast-mode-hint"></p>
+      <label class="switch"><input type="checkbox" id="guide-tips"><span class="track"></span><span data-i18n="commentary.guide-tips"></span></label>
+      <p id="guide-tips-hint" class="note" data-i18n="commentary.guide-tips-hint"></p>
+      <p id="hotkey-hint" class="note"></p>
+      <label class="field"><span data-i18n="language.heading"></span>
+        <select id="language">
+          <option value="system" data-i18n="language.system"></option>
+          <option value="en" lang="en">English</option>
+          <option value="zh-CN" lang="zh-CN">简体中文</option>
+        </select>
+      </label>
+    </section>
+
+    <details id="advanced" class="card">
+      <summary data-i18n="advanced.heading"></summary>
+      <label class="switch"><input type="checkbox" id="avoid-interrupting"><span class="track"></span><span data-i18n="commentary.avoid-interrupting"></span></label>
+      <label class="field"><span data-i18n="commentary.sample.before"></span> <input type="number" id="sample" min="1" max="30" step="1"> <span data-i18n="commentary.sample.after"></span></label>
+      <label class="field"><span data-i18n="commentary.cooldown.before"></span> <input type="number" id="cooldown" min="15" max="600" step="1"> <span data-i18n="commentary.cooldown.after"></span></label>
+      <label class="field"><span data-i18n="commentary.threshold.before"></span> <input type="number" id="threshold" min="1" max="64" step="1"> <span data-i18n="commentary.threshold.after"></span></label>
+      <label class="field"><span data-i18n="commentary.hotkey"></span> <input type="text" id="hotkey" maxlength="64"></label>
+      <p class="note" data-i18n="games.manual"></p>
+      <div class="row">
+        <input type="text" id="manual-process" placeholder="game.exe">
+        <input type="text" id="manual-name" data-i18n-placeholder="games.name-placeholder" maxlength="80">
+        <button id="manual-add" type="button" data-i18n="games.add"></button>
+      </div>
+    </details>
+  </main>
+
+  <footer>
+    <span id="save-status"></span>
+    <button id="save" type="button" class="primary" data-i18n="save.button"></button>
+  </footer>
+  <script type="module" src="settings.mjs"></script>
+</body>
+</html>
