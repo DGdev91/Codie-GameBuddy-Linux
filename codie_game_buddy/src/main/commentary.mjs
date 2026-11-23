@@ -24,7 +24,7 @@ const RECENT_REMARKS = 5;
 // hotkey asks for Codie's take on the moment instead.
 const NO_GUIDES = { wikiFor: () => null, tipFor: () => null, used: () => {} };
 
-export function createCommentary({ capture, host, lock, settings, locale = () => 'en', gameInfo = { get: () => null }, ocr = { read: async () => [] }, screenTerms = { describe: () => [] }, guides = NO_GUIDES, now = Date.now, random = Math.random, log = () => {}, onStatus = () => {} }) {
+export function createCommentary({ capture, host, lock, settings, locale = () => 'en', gameInfo = { get: () => null }, ocr = { read: async () => [] }, screenTerms = { describe: () => [] }, guides = NO_GUIDES, speech = async () => null, now = Date.now, random = Math.random, log = () => {}, onStatus = () => {} }) {
   let lastSentHash = null;
   let lastSentAt = -Infinity;
   let last = null; // how the last turn went, for shouldSend
@@ -96,8 +96,9 @@ export function createCommentary({ capture, host, lock, settings, locale = () =>
       if (stopped || (fromTick && !settings().commentaryEnabled)) return 'skip';
       counters = parseCounters(read.turn?.assistant_text ?? '');
     }
+    const spoken = await speech();
     const text = commentaryPrompt(name, lang, info, onScreen, {
-      fastMode: s.fastMode === true, followsOn: chatty && last === 'sent', recent: prior, earlier, tip, genre, asked: !fromTick, ...(angle && { angle }), ...(game?.persona && { persona: game.persona }), ...(counters.length && { counters }),
+      ...(spoken && { speech: spoken }), fastMode: s.fastMode === true, followsOn: chatty && last === 'sent', recent: prior, earlier, tip, genre, asked: !fromTick, ...(angle && { angle }), ...(game?.persona && { persona: game.persona }), ...(counters.length && { counters }),
     });
     // A remark stays out of the device's chat history, memory and diary
     // (retention none): the remarks so far are quoted in the prompt instead.
@@ -105,7 +106,9 @@ export function createCommentary({ capture, host, lock, settings, locale = () =>
     // times handed the screenshot to the user's coding agent (tools none).
     status('responding');
     const sentAt = now();
-    const r = await host.chatTurn({ image, text, speech: 'device', interrupt, retention: 'none', tools: 'none' });
+    // saveToHistory keeps the remark (with its screenshot and prompt) in the
+    // chat history, so a voice conversation can pick it up; still no memory upkeep.
+    const r = await host.chatTurn({ image, text, speech: 'device', interrupt, retention: s.saveToHistory ? 'chat' : 'none', tools: 'none' });
     if (!r.ok) return failed(r);
     log(`latency: capture=${capturedAt - startedAt}ms preparation=${sentAt - capturedAt}ms turn=${now() - sentAt}ms total=${now() - startedAt}ms (turn includes generation and playback)`);
     lastSentHash = hash;

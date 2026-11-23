@@ -15,10 +15,13 @@ test('"system" follows the app locale: any Chinese is zh-CN, anything else Engli
 test('a chosen language wins over the app locale', () => {
   assert.equal(resolveLocale('en', 'zh-CN'), 'en');
   assert.equal(resolveLocale('zh-CN', 'en-US'), 'zh-CN');
+  // Languages Codie speaks without a message table: English UI, Chinese for zh-TW.
+  assert.equal(resolveLocale('it', 'zh-CN'), 'en');
+  assert.equal(resolveLocale('zh-TW', 'en-US'), 'zh-CN');
 });
 
-test('every language but "system" has a message table', () => {
-  assert.deepEqual(LANGUAGES, ['system', 'en', 'zh-CN']);
+test('every UI locale has a message table', () => {
+  assert.deepEqual(LANGUAGES, ['system', 'en', 'zh-CN', 'zh-TW', 'ja', 'ko', 'fr', 'de', 'es', 'it', 'pt']);
   assert.deepEqual(Object.keys(MESSAGES).sort(), ['en', 'zh-CN']);
 });
 

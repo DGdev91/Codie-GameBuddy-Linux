@@ -65,7 +65,7 @@
   "genre.card": "Card",
   "genre.other": "Other",
   "language.heading": "Language",
-  "language.system": "Follow Windows",
+  "language.system": "Follow System",
   "save.button": "Save",
   "save.done": "Saved.",
   "save.done-hotkey-error": "Saved. Hotkey not active: {error}",
@@ -118,6 +118,8 @@
   "activity.last-error": "Last error: {error}",
   "activity.hotkey-received": "Received. The latest frame will be captured when ready; repeated presses add no requests.",
   "commentary.fast-mode": "Fast commentary",
+  "commentary.save-to-history": "Save comments in chat history",
+  "commentary.save-to-history-hint": "Off by default. On, each comment stays in your chat with Codie (the screenshot and the request with it), so you can talk about it afterwards; it does not update memory or the diary.",
   "commentary.fast-mode-hint": "On by default: one model request per comment, skipping Read the numbers first and exact resource amounts. Turn off to use each game’s number-reading setting.",
   "activity.window-changed": "Foreground window changed; hotkey request cancelled"
 }

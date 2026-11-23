@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ANGLES } from '../src/main/angles.mjs';
-import { commentaryPrompt, countersPrompt, parseCounters } from '../src/main/prompt.mjs';
+import { commentaryPrompt, conversationPrompt, countersPrompt, parseCounters } from '../src/main/prompt.mjs';
 
 const TIP = { name: '玛尔基特', source: '艾尔登法环WIKI', text: '他会趁你补血时扔飞刀。' };
 const BACKGROUND = { source: '萌娘百科', text: '武侠动作游戏。' };
@@ -177,6 +177,11 @@ test('the voice is spoken words in character, in the language game_buddy is set 
   ].join('\n'));
   assert.match(commentaryPrompt('Elden Ring', 'en'), /- Speak only English, whatever language these instructions and the notes are in\.$/);
   assert.match(commentaryPrompt('Elden Ring'), /- Speak only English, /);
+  // The device's AI language wins over the app's.
+  assert.match(commentaryPrompt('Elden Ring', 'en', null, [], { speech: 'it' }), /- Speak only Italian, /);
+  assert.match(commentaryPrompt('Elden Ring', 'en', null, [], { speech: 'zh-TW' }), /- Speak only Traditional Chinese, [^]*$/);
+  assert.match(commentaryPrompt('Elden Ring', 'en', null, [], { speech: 'zh-TW' }), /at most 25 Chinese characters/);
+  assert.match(conversationPrompt('Elden Ring', 'zh-CN', null, { speech: 'ja' }), /- Speak only Japanese, /);
 });
 
 test('how a remark should sound is not legislated', () => {

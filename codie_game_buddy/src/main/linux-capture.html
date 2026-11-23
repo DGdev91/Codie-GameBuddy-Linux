@@ -1,0 +1,37 @@
+<!doctype html>
+<meta charset="utf-8">
+<script>
+// The hidden capture page of linux.mjs: one ScreenCast stream, its latest frame kept.
+let live = false;
+let latest = null;
+const canvas = document.createElement('canvas');
+
+async function start() {
+  const stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: { max: 5 } }, audio: false });
+  const [track] = stream.getVideoTracks();
+  const reader = new MediaStreamTrackProcessor({ track }).readable.getReader();
+  const first = await reader.read();
+  if (first.done) throw new Error('the stream ended');
+  latest = first.value;
+  live = true;
+  (async () => {
+    for (let r = await reader.read(); !r.done; r = await reader.read()) {
+      latest.close();
+      latest = r.value;
+    }
+    live = false;
+    latest?.close();
+    latest = null;
+  })();
+}
+
+// The latest frame fitted inside width x height, as a PNG data URL, or null.
+function grab(width, height) {
+  if (!live || !latest) return null;
+  const s = Math.min(width / latest.displayWidth, height / latest.displayHeight, 1);
+  canvas.width = Math.max(1, Math.round(latest.displayWidth * s));
+  canvas.height = Math.max(1, Math.round(latest.displayHeight * s));
+  canvas.getContext('2d').drawImage(latest, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/png');
+}
+</script>

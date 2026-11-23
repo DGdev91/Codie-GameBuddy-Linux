@@ -7,7 +7,10 @@ export { classify } from 'codie-host';
 
 export const CLIENT_NAME = 'game-buddy';
 const CONTEXT_PATH = '/v1/api/data/user/conversation/context';
-export const SCOPE = Object.freeze({ tools: true, pair: true, api: Object.freeze(['/v1/api/data/user/chat/turns', CONTEXT_PATH]) });
+// GET system: the device's settings, ai_language among them (the language Codie talks in).
+const SYSTEM_PATH = '/v1/api/data/user/system';
+const LANGUAGE_RETRY_MS = 60_000;
+export const SCOPE = Object.freeze({ tools: true, pair: true, api: Object.freeze(['/v1/api/data/user/chat/turns', CONTEXT_PATH, SYSTEM_PATH]) });
 
 // A turn the device would not take now (busy in a conversation, screen off,
 // ambient mode) that failed when it was to start.
@@ -16,6 +19,8 @@ const BLOCKED = new Set(['DEVICE_BUSY', 'DEVICE_BLOCKED', 'AMBIENT_MODE_BLOCKED'
 export function createHost({ log = () => {}, onState = () => {}, client, watchMs, serveRetryMs } = {}) {
   // No tools until phase 3: serve() only keeps the registration alive.
   const conn = createConnection({ name: CLIENT_NAME, scope: SCOPE, log, onState, client, watchMs, serveRetryMs });
+  let language = null;
+  let languageAt = -Infinity;
 
   return {
     get state() { return conn.state; },
@@ -56,6 +61,19 @@ export function createHost({ log = () => {}, onState = () => {}, client, watchMs
       } catch (error) {
         return { ok: false, kind: conn.noteError(error), error };
       }
+    },
+
+    // The language set on the device for Codie (a tag such as 'it' or
+    // 'zh-TW'), read once; a failed read is tried again at most once a
+    // minute. null until the device says.
+    async language() {
+      if (language === null && Date.now() - languageAt > LANGUAGE_RETRY_MS) {
+        languageAt = Date.now();
+        try {
+          language = (await conn.client.api('GET', SYSTEM_PATH))?.ai_language || null;
+        } catch { /* tried again later */ }
+      }
+      return language;
     },
 
     devices: () => conn.devices(),

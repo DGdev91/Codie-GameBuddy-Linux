@@ -1,8 +1,13 @@
 import { playFocus } from './angles.mjs';
 import { wornPhrases } from './worn.mjs';
 
-// The language Codie speaks in, per game_buddy's resolved locale (i18n.mjs).
-const LANGUAGE = { en: 'English', 'zh-CN': 'Simplified Chinese' };
+// The language Codie speaks in, per game_buddy's resolved locale (i18n.mjs)
+// or the device's AI language (host.language()): a tag, named in English.
+const LANGUAGE = { en: 'English', 'zh-CN': 'Simplified Chinese', zh: 'Simplified Chinese', 'zh-TW': 'Traditional Chinese' };
+const languageName = tag => {
+  if (LANGUAGE[tag]) return LANGUAGE[tag];
+  try { return new Intl.DisplayNames(['en'], { type: 'language' }).of(tag) ?? LANGUAGE.en; } catch { return LANGUAGE.en; }
+};
 
 // What a guide tip is about, per genre (genre.mjs).
 const GENRE_TIP = {
@@ -127,8 +132,10 @@ export function parseCounters(text) {
 // `persona`: the character the user has Codie play for this game, in their
 // own words (settings.mjs); it replaces the device's character for the remark.
 // `counters`: the counters read off this screenshot ([{ name, value }], parseCounters).
-export function commentaryPrompt(gameName, locale = 'en', background = null, onScreen = [], { followsOn = false, recent = [], earlier = [], tip = null, genre = 'other', angle = 'moment', asked = false, persona = '', counters = [], fastMode = false } = {}) {
-  const language = LANGUAGE[locale] ?? LANGUAGE.en;
+// `speech`: the device's AI language, which Codie speaks in place of `locale`'s.
+export function commentaryPrompt(gameName, locale = 'en', background = null, onScreen = [], { followsOn = false, recent = [], earlier = [], tip = null, genre = 'other', angle = 'moment', asked = false, persona = '', counters = [], fastMode = false, speech = null } = {}) {
+  const spoken = speech ?? locale;
+  const language = languageName(spoken);
   const reference = notes({ background, onScreen, counters, tip, recent, earlier });
   const task = (asked ? askedTask : remarkTask)({
     tipKind: tip ? GENRE_TIP[genre] ?? GENRE_TIP.other : null,
@@ -137,7 +144,7 @@ export function commentaryPrompt(gameName, locale = 'en', background = null, onS
     hasRecent: recent.length > 0 || earlier.length > 0,
     hasWorn: reference.some(n => n.startsWith('<worn_words>')),
   });
-  task.splice(1, 0, locale === 'zh-CN'
+  task.splice(1, 0, /^zh\b/.test(spoken)
     ? 'Use at most 25 Chinese characters, including any form of address. Put the point first; no preamble, recap or second point.'
     : 'Use at most 15 words, including any form of address. Put the point first; no preamble, recap or second point.');
   const blocks = [
@@ -189,7 +196,7 @@ const voice = (persona, language) => [
 // What the device is told about the game in front, for what the user says to
 // Codie by voice meanwhile (spec §4.3, context-feed.mjs): the screen comes
 // with it, and the answer is game talk in the game's character, as a remark is.
-export function conversationPrompt(gameName, locale = 'en', background = null, { persona = '' } = {}) {
+export function conversationPrompt(gameName, locale = 'en', background = null, { persona = '', speech = null } = {}) {
   const reference = notes({ background, onScreen: [], counters: [], tip: null, recent: [] });
   return join([
     ['Situation', [[
@@ -204,6 +211,6 @@ export function conversationPrompt(gameName, locale = 'en', background = null, {
       'Lead with the answer in one short, natural spoken sentence. Add detail only if the user asks for it.',
     ]],
     ['Rules', gameRules(reference.length > 0)],
-    ['Voice', voice(persona, LANGUAGE[locale] ?? LANGUAGE.en)],
+    ['Voice', voice(persona, languageName(speech ?? locale))],
   ]);
 }

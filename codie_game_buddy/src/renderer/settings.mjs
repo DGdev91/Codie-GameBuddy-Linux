@@ -277,6 +277,7 @@ function show({ settings, errors = [], state, stateText, errorText, strings }) {
   $('enabled').checked = settings.commentaryEnabled;
   $('chatty').checked = settings.chattyMode;
   $('fast-mode').checked = settings.fastMode;
+  $('save-to-history').checked = settings.saveToHistory;
   $('guide-tips').checked = settings.guideTips;
   $('avoid-interrupting').checked = settings.avoidInterrupting;
   $('sample').value = seconds(settings.sampleMs);
@@ -317,6 +318,7 @@ async function save() {
       avoidInterrupting: $('avoid-interrupting').checked,
       chattyMode: $('chatty').checked,
       fastMode: $('fast-mode').checked,
+      saveToHistory: $('save-to-history').checked,
       guideTips: $('guide-tips').checked,
       allowList: games,
     });

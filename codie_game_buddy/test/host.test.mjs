@@ -21,7 +21,7 @@ function fakeClient(over = {}) {
 
 test('the client asks for exactly the phase 2 and 3 scope', () => {
   assert.equal(CLIENT_NAME, 'game-buddy');
-  assert.deepEqual(SCOPE, { tools: true, pair: true, api: ['/v1/api/data/user/chat/turns', '/v1/api/data/user/conversation/context'] });
+  assert.deepEqual(SCOPE, { tools: true, pair: true, api: ['/v1/api/data/user/chat/turns', '/v1/api/data/user/conversation/context', '/v1/api/data/user/system'] });
 });
 
 test('errors are classified for the tray', () => {

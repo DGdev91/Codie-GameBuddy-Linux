@@ -65,7 +65,7 @@
   "genre.card": "卡牌",
   "genre.other": "其他",
   "language.heading": "语言",
-  "language.system": "跟随 Windows",
+  "language.system": "跟随系统",
   "save.button": "保存",
   "save.done": "已保存。",
   "save.done-hotkey-error": "已保存。快捷键未生效：{error}",
@@ -118,6 +118,8 @@
   "activity.last-error": "最近错误：{error}",
   "activity.hotkey-received": "已收到。轮到处理时会截取最新画面；重复按键不会增加请求。",
   "commentary.fast-mode": "快速解说",
+  "commentary.save-to-history": "解说保存到聊天记录",
+  "commentary.save-to-history-hint": "默认关闭。开启后每条解说（连同截图和请求）会留在你与 Codie 的聊天记录里，之后可以接着聊；不会更新记忆或日记。",
   "commentary.fast-mode-hint": "默认开启：每句只请求一次模型，跳过“先读数字”，不报精确资源数量。关闭后才会按各游戏的设置先读数字。",
   "activity.window-changed": "前台窗口已切换，已取消这次快捷键请求"
 }

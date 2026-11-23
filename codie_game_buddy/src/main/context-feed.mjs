@@ -15,7 +15,7 @@ export const TTL_MS = 20_000;
 // of this, with the text, fits.
 const MAX_IMAGE_BYTES = 700 * 1024;
 
-export function createContextFeed({ capture, host, settings, locale = () => 'en', gameInfo = { get: () => null }, log = () => {} }) {
+export function createContextFeed({ capture, host, settings, locale = () => 'en', speech = async () => null, gameInfo = { get: () => null }, log = () => {} }) {
   let given = false; // the device may still hold a context
   let failure = null; // the last push's error code, logged when it changes
 
@@ -41,7 +41,8 @@ export function createContextFeed({ capture, host, settings, locale = () => 'en'
     const active = foreground && matchAllowList(foreground, current.allowList);
     if (stopped || !current.commentaryEnabled || foreground?.id !== win.id || active?.name !== game.name) return clear();
     const lang = locale();
-    const text = conversationPrompt(game.name, lang, gameInfo.get({ name: game.name, locale: lang }), { ...(game.persona && { persona: game.persona }) });
+    const spoken = await speech();
+    const text = conversationPrompt(game.name, lang, gameInfo.get({ name: game.name, locale: lang }), { ...(game.persona && { persona: game.persona }), ...(spoken && { speech: spoken }) });
     given = true; // A timed-out request may still have reached the device.
     const r = await host.setContext({ image, text, ttlMs: TTL_MS });
     const code = r.ok ? null : r.error?.code ?? r.kind;

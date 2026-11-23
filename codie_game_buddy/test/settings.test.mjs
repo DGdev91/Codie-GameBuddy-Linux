@@ -13,17 +13,17 @@ const tmpFile = t => {
 
 test('defaults match the spec', () => {
   assert.deepEqual({ ...DEFAULTS }, {
-    commentaryEnabled: true, allowList: [], sampleMs: 3000, cooldownMs: 60000, changeThreshold: 12, hotkey: 'Ctrl+Alt+G', language: 'system', avoidInterrupting: true, chattyMode: false, guideTips: true, fastMode: true,
+    commentaryEnabled: true, allowList: [], sampleMs: 3000, cooldownMs: 60000, changeThreshold: 12, hotkey: 'Ctrl+Alt+G', language: 'system', avoidInterrupting: true, chattyMode: false, guideTips: true, fastMode: true, saveToHistory: false,
   });
 });
 
 test('valid values are kept, invalid ones fall back and are reported', () => {
   const { settings, errors } = validateSettings({
-    commentaryEnabled: false, sampleMs: 500, cooldownMs: 90000, changeThreshold: 64.5, hotkey: '', language: 'fr', avoidInterrupting: 'yes', chattyMode: 1,
+    commentaryEnabled: false, sampleMs: 500, cooldownMs: 90000, changeThreshold: 64.5, hotkey: '', language: 'xx', avoidInterrupting: 'yes', chattyMode: 1,
     allowList: [{ process: 'Game.exe', name: 'My Game', extra: 1 }],
   });
   assert.deepEqual(settings, {
-    commentaryEnabled: false, allowList: [{ process: 'Game.exe', name: 'My Game' }], sampleMs: 3000, cooldownMs: 90000, changeThreshold: 12, hotkey: 'Ctrl+Alt+G', language: 'system', avoidInterrupting: true, chattyMode: false, guideTips: true, fastMode: true,
+    commentaryEnabled: false, allowList: [{ process: 'Game.exe', name: 'My Game' }], sampleMs: 3000, cooldownMs: 90000, changeThreshold: 12, hotkey: 'Ctrl+Alt+G', language: 'system', avoidInterrupting: true, chattyMode: false, guideTips: true, fastMode: true, saveToHistory: false,
   });
   assert.deepEqual(errors.sort(), ['avoidInterrupting', 'changeThreshold', 'chattyMode', 'hotkey', 'language', 'sampleMs']);
 });
@@ -33,7 +33,8 @@ test('chatty mode is a boolean', () => {
   assert.deepEqual(validateSettings({ chattyMode: 'on' }).errors, ['chattyMode']);
 });
 
-test('language is system, en or zh-CN', () => {
+test('language is system or a language Codie speaks', () => {
+  assert.equal(validateSettings({ language: 'it' }).settings.language, 'it');
   assert.equal(validateSettings({ language: 'zh-CN' }).settings.language, 'zh-CN');
   assert.equal(validateSettings({ language: 'en' }).settings.language, 'en');
   assert.deepEqual(validateSettings({ language: 'zh' }).errors, ['language']);
@@ -41,7 +42,7 @@ test('language is system, en or zh-CN', () => {
 
 test('the allow list needs exe names, names, and no duplicates', () => {
   const bad = list => validateSettings({ allowList: list }).errors;
-  assert.deepEqual(bad([{ process: 'game', name: 'x' }]), ['allowList']);
+  if (process.platform !== 'linux') assert.deepEqual(bad([{ process: 'game', name: 'x' }]), ['allowList']);
   assert.deepEqual(bad([{ process: 'a/b.exe', name: 'x' }]), ['allowList']);
   assert.deepEqual(bad([{ process: 'g.exe', name: '' }]), ['allowList']);
   assert.deepEqual(bad([{ process: 'g.exe', name: 'a' }, { process: 'G.EXE', name: 'A' }]), ['allowList']);
@@ -116,4 +117,6 @@ test('fast mode defaults on for existing settings and accepts only booleans', ()
   assert.equal(validateSettings({}).settings.fastMode, true);
   assert.equal(validateSettings({ fastMode: false }).settings.fastMode, false);
   assert.deepEqual(validateSettings({ fastMode: 'on' }).errors, ['fastMode']);
+  assert.equal(validateSettings({ saveToHistory: true }).settings.saveToHistory, true);
+  assert.deepEqual(validateSettings({ saveToHistory: 'on' }).errors, ['saveToHistory']);
 });

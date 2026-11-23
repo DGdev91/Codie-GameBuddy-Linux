@@ -2,6 +2,9 @@ import { desktopCapturer } from 'electron';
 import { activeWindow, openWindows } from 'get-windows';
 import { HASH_HEIGHT, HASH_WIDTH, dHash } from './dhash.mjs';
 
+// Linux (KDE Wayland): windows from KWin, frames from the ScreenCast portal.
+const linux = process.platform === 'linux' ? await import('./linux.mjs') : null;
+
 // Windows and frames (spec §4.1 steps 1, 2 and 4).
 
 const MAX_IMAGE_BYTES = 1 << 20; // codie-host refuses larger images
@@ -12,14 +15,15 @@ const SEND_SIZE = { width: 1280, height: 1280 }; // the window fits inside, aspe
 const toWindow = w => (w ? { id: w.id, path: w.owner?.path ?? '', owner: w.owner?.name ?? '', title: w.title ?? '' } : null);
 
 export async function foreground() {
-  return toWindow(await activeWindow());
+  return linux ? linux.activeWindow() : toWindow(await activeWindow());
 }
 
 export async function listWindows() {
-  return (await openWindows()).map(toWindow);
+  return linux ? linux.openWindows() : (await openWindows()).map(toWindow);
 }
 
 async function thumbnail(windowId, size) {
+  if (linux) return linux.thumbnail(size);
   const sources = await desktopCapturer.getSources({ types: ['window'], thumbnailSize: size });
   const source = sources.find(s => s.id.startsWith(`window:${windowId}:`));
   return source && !source.thumbnail.isEmpty() ? source.thumbnail : null;

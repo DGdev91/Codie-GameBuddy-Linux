@@ -14,7 +14,7 @@ import { createHost } from './host.mjs';
 import { throttleByHost } from './host-throttle.mjs';
 import { registerHotkey } from './hotkey.mjs';
 import { createLookupCache } from './lookup-cache.mjs';
-import { createOcr } from './ocr.mjs';
+import { createOcr as createWindowsOcr } from './ocr.mjs';
 import { createScreenTerms } from './screen-terms.mjs';
 import { openSettingsWindow, pushSettings, pushView, registerSettingsIpc } from './settings-window.mjs';
 import { loadSettings, MAX_GAMES, saveSettings } from './settings.mjs';
@@ -23,6 +23,8 @@ import { createTray } from './tray.mjs';
 import { nextTickMs } from './trigger.mjs';
 import { createTurnLock } from './turn-lock.mjs';
 import { createUpdater, updateMenuItem } from './updater.mjs';
+
+const createOcr = process.platform === 'linux' ? (await import('./linux.mjs')).createOcr : createWindowsOcr;
 
 // Codie Game Buddy: a tray app that lets Codie comment on the game in front.
 
@@ -101,9 +103,12 @@ if (!app.requestSingleInstanceLock()) {
   const guides = createGuides({ gameInfo, guideWikis, guideNotes, log });
   const ocr = createOcr({ log });
   const screenTerms = createScreenTerms({ termInfo, log });
-  const commentary = createCommentary({ capture, host, lock, settings: () => settings, locale: () => locale, gameInfo, ocr, screenTerms, guides, log, onStatus: report });
+  // The language Codie speaks: the one chosen in settings, or in "system" the
+  // device's own (read once, only then).
+  const speech = async () => (settings.language === 'system' ? host.language() : settings.language);
+  const commentary = createCommentary({ capture, host, lock, settings: () => settings, locale: () => locale, speech, gameInfo, ocr, screenTerms, guides, log, onStatus: report });
 
-  const contextFeed = createContextFeed({ capture, host, settings: () => settings, locale: () => locale, gameInfo, log });
+  const contextFeed = createContextFeed({ capture, host, settings: () => settings, locale: () => locale, speech, gameInfo, log });
 
   // The settings window's games (saved or not), each with its guide wiki
   // state; asking starts the lookups.
@@ -237,7 +242,10 @@ if (!app.requestSingleInstanceLock()) {
     if (loaded.firstRun) openSettingsWindow();
   });
 
-  app.on('second-instance', () => { if (app.isReady()) openSettingsWindow(); });
+  // `--look` acts as the hotkey, for desktops without global shortcuts (bind it there).
+  app.on('second-instance', (event, argv) => {
+    if (app.isReady()) (argv.includes('--look') ? onHotkey() : openSettingsWindow());
+  });
 
   app.on('window-all-closed', () => {}); // the tray keeps running
   let closing = false;

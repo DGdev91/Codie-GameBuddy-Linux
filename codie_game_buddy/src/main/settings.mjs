@@ -17,10 +17,12 @@ export const DEFAULTS = Object.freeze({
   chattyMode: false,
   guideTips: true,
   fastMode: true,
+  saveToHistory: false,
 });
 
 const RANGES = Object.freeze({ sampleMs: [1000, 30000], cooldownMs: [15000, 600000], changeThreshold: [1, 64] });
-const EXE_NAME = /^[^\\/:*?"<>|]+\.exe$/i;
+// Linux also takes native programs, which have no .exe.
+const EXE_NAME = process.platform === 'linux' ? /^[^\\/:*?"<>|]+$/ : /^[^\\/:*?"<>|]+\.exe$/i;
 export const MAX_GAMES = 100;
 const MAX_NAME = 80;
 const MAX_HOTKEY = 64;
@@ -100,6 +102,7 @@ const NORMALIZERS = {
   chattyMode: v => (typeof v === 'boolean' ? v : undefined),
   guideTips: v => (typeof v === 'boolean' ? v : undefined),
   fastMode: v => (typeof v === 'boolean' ? v : undefined),
+  saveToHistory: v => (typeof v === 'boolean' ? v : undefined),
 };
 
 // Every invalid value falls back to its default and is named in `errors`.

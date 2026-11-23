@@ -39,8 +39,9 @@ export function createTray({ onSettings, onToggle, onChatty, onUpdate, onQuit })
         { label: t('tray.quit'), click: onQuit },
       ]));
     },
-    // A Windows notification from the tray icon.
-    notify: text => tray.displayBalloon({ title: 'Codie Game Buddy', content: text }),
+    // A Windows notification from the tray icon (a desktop notification on Linux).
+    notify: text => (process.platform === 'linux' ? import('./linux.mjs').then(l => l.notify(text))
+      : tray.displayBalloon({ title: 'Codie Game Buddy', content: text })),
     destroy: () => tray.destroy(),
   };
 }
